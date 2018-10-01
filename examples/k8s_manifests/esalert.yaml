@@ -1,0 +1,124 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: esrules
+  namespace: monitoring
+data:
+  common: |
+    es_host: elasticsearch-log.monitoring.svc.cluster.local
+    es_port: 9200
+    alert:
+    - "opsgenie"
+    opsgenie_key: <YOUR_KEY>
+    opsgenie_teams: 
+    - "<YOUR_TEAM>"
+    opsgenie_tags:
+    - "ElastAlert"
+    
+  metrics-server-tls-error.yaml: |
+    import: common
+    name: Metrics Server TLS Error
+    type: frequency
+    index: kubernetes-*
+    num_events: 1
+    timeframe:
+        hours: 1
+    filter:
+    - term:
+        kubernetes.pod_name: "metrics-server"
+    - term:
+        log: "TLS handshake timeout"
+    opsgenie_message: "Metrics-Server TLS Timeout handshake error"
+    opsgenie_alias: "[ESAlert][CLUSTER] Metrics-Server TLS Timeout handshake error"
+    opsgenie_subject: "[ESAlert][CLUSTER] Metrics-Server TLS Timeout handshake error"
+    opsgenie_priority: "P1"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: esalert
+  namespace: monitoring
+data:
+  config.yaml: |
+    # This is the folder that contains the rule yaml files
+    # Any .yaml file will be loaded as a rule
+    rules_folder: /opt/rules
+    # When using a configmap we can't scan subfolders
+    scan_subdirectories: false
+    
+    # How often ElastAlert will query Elasticsearch
+    # The unit can be anything from weeks to seconds
+    run_every:
+      minutes: 1
+    
+    # ElastAlert will buffer results from the most recent
+    # period of time, in case some log sources are not in real time
+    buffer_time:
+      minutes: 15
+    
+    # The Elasticsearch hostname for metadata writeback
+    # Note that every rule can have its own Elasticsearch host
+    es_host: elasticsearch-log.monitoring.svc.cluster.local
+    
+    # The Elasticsearch port
+    es_port: 9200
+    
+    # Connect with TLS to Elasticsearch
+    use_ssl: False
+    
+    # GET request with body is the default option for Elasticsearch.
+    # If it fails for some reason, you can pass 'GET', 'POST' or 'source'.
+    # See http://elasticsearch-py.readthedocs.io/en/master/connection.html?highlight=send_get_body_as#transport
+    # for details
+    #es_send_get_body_as: GET
+    
+    # The index on es_host which is used for metadata storage
+    # This can be a unmapped index, but it is recommended that you run
+    # elastalert-create-index to set a mapping
+    writeback_index: elastalert_status
+    
+    # If an alert fails for some reason, ElastAlert will retry
+    # sending the alert until this time period has elapsed
+    alert_time_limit:
+      days: 2
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: esalert
+  namespace: monitoring
+  labels:
+    k8s-app: elastalert
+spec:
+  securityContext:
+    runAsUser: 65534
+    fsGroup: 65534
+  containers:
+  - name: esalert
+    image: mintel/elastalert:latest
+    imagePullPolicy: Always
+    env:
+      - name: SET_CONTAINER_TIMEZONE
+        value: "True"
+      - name: ELASTICSEARCH_HOST
+        value: elasticsearch-log.monitoring.svc.cluster.local
+    volumeMounts:
+      - name: config
+        mountPath: /opt/config
+      - name: rules
+        mountPath: /opt/rules
+    resources:
+      requests:
+        cpu: 50m
+        memory: 50Mi
+      limits:
+        cpu: 50m
+        memory: 50Mi
+  volumes:
+    - name: config
+      configMap:
+        name: esalert
+    - name: rules
+      configMap:
+        name: esrules
+  restartPolicy: OnFailure
