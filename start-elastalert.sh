@@ -44,11 +44,6 @@ else
     echo "Container timezone not modified"
 fi
 
-# Force immediate synchronisation of the time and start the time-synchronization service.
-# In order to be able to use ntpd in the container, it must be run with the SYS_TIME capability.
-# In addition you may want to add the SYS_NICE capability, in order for ntpd to be able to modify its priority.
-ntpd -s
-
 # Elastalert configuration:
 if [ ! -f ${ELASTALERT_CONFIG} ]; then
     cp "${ELASTALERT_HOME}/config.yaml.example" "${ELASTALERT_CONFIG}" && \
@@ -69,18 +64,6 @@ if [ ! -f ${ELASTALERT_CONFIG} ]; then
     fi
     # Set the writeback index used with elastalert.
     sed -i -e"s|writeback_index: [[:print:]]*|writeback_index: ${ELASTALERT_INDEX}|g" "${ELASTALERT_CONFIG}"
-fi
-
-# Elastalert Supervisor configuration:
-if [ ! -f ${ELASTALERT_SUPERVISOR_CONF} ]; then
-    cp "${ELASTALERT_HOME}/supervisord.conf.example" "${ELASTALERT_SUPERVISOR_CONF}" && \
-
-    # Redirect Supervisor log output to a file in the designated logs directory.
-    sed -i -e"s|logfile=.*log|logfile=${LOG_DIR}/elastalert_supervisord.log|g" "${ELASTALERT_SUPERVISOR_CONF}"
-    # Redirect Supervisor stderr output to a file in the designated logs directory.
-    sed -i -e"s|stderr_logfile=.*log|stderr_logfile=${LOG_DIR}/elastalert_stderr.log|g" "${ELASTALERT_SUPERVISOR_CONF}"
-    # Modify the start-command.
-    sed -i -e"s|python elastalert.py|elastalert --config ${ELASTALERT_CONFIG}|g" "${ELASTALERT_SUPERVISOR_CONF}"
 fi
 
 # Set authentication if needed
@@ -113,4 +96,4 @@ else
 fi
 
 echo "Starting Elastalert..."
-exec supervisord -c "${ELASTALERT_SUPERVISOR_CONF}" -n
+exec python -m elastalert.elastalert --verbose --config ${ELASTALERT_CONFIG} 
