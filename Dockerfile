@@ -24,7 +24,7 @@ LABEL maintainer="Francesco Ciocchetti <fciocchetti@mintel.com>" \
 # Set this environment variable to True to set timezone on container start.
 ENV SET_CONTAINER_TIMEZONE False
 # Default container timezone as found under the directory /usr/share/zoneinfo/.
-ENV CONTAINER_TIMEZONE Etc/URC
+ENV CONTAINER_TIMEZONE Etc/UTC
 # VERSION from which to download Elastalert.
 ENV ELASTALERT_VERSION 0.1.36
 # URL from which to download Elastalert.
@@ -34,7 +34,7 @@ ENV CONFIG_DIR /opt/config
 # Elastalert rules directory.
 ENV RULES_DIRECTORY /opt/rules
 # Elastalert configuration file path in configuration directory.
-ENV ELASTALERT_CONFIG ${CONFIG_DIR}/elastalert_config.yaml
+ENV ELASTALERT_CONFIG ${CONFIG_DIR}/config.yaml
 # Elastalert home directory full path.
 ENV ELASTALERT_HOME /opt/elastalert
 # Alias, DNS or IP of Elasticsearch host to be queried by Elastalert. Set in default Elasticsearch configuration file.
