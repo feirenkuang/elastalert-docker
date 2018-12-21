@@ -18,7 +18,7 @@
 FROM alpine:3.8
 
 LABEL maintainer="Francesco Ciocchetti <fciocchetti@mintel.com>" \
-      version="0.1.36" \
+      version="0.1.38" \
       vcs-url="https://github.com/mintel/elastalert-docker"
 
 # Set this environment variable to True to set timezone on container start.
@@ -26,7 +26,7 @@ ENV SET_CONTAINER_TIMEZONE False
 # Default container timezone as found under the directory /usr/share/zoneinfo/.
 ENV CONTAINER_TIMEZONE Etc/UTC
 # VERSION from which to download Elastalert.
-ENV ELASTALERT_VERSION 0.1.36
+ENV ELASTALERT_VERSION 0.1.38
 # URL from which to download Elastalert.
 ENV ELASTALERT_URL https://github.com/Yelp/elastalert/archive/v${ELASTALERT_VERSION}.zip
 # Directory holding configuration for Elastalert and Supervisor.
