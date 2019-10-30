@@ -18,7 +18,7 @@
 FROM alpine:3.8
 
 LABEL maintainer="Francesco Ciocchetti <fciocchetti@mintel.com>" \
-      version="0.1.38" \
+      version="0.2.0b2" \
       vcs-url="https://github.com/mintel/elastalert-docker"
 
 # Set this environment variable to True to set timezone on container start.
@@ -26,7 +26,7 @@ ENV SET_CONTAINER_TIMEZONE False
 # Default container timezone as found under the directory /usr/share/zoneinfo/.
 ENV CONTAINER_TIMEZONE Etc/UTC
 # VERSION from which to download Elastalert.
-ENV ELASTALERT_VERSION 0.1.38
+ENV ELASTALERT_VERSION "0.2.0b2"
 # URL from which to download Elastalert.
 ENV ELASTALERT_URL https://github.com/Yelp/elastalert/archive/v${ELASTALERT_VERSION}.zip
 # Directory holding configuration for Elastalert and Supervisor.
@@ -67,13 +67,11 @@ RUN python setup.py install && \
     pip install -e . && \
     pip uninstall twilio --yes && \
     pip install twilio==6.0.0 && \
-
-# Create directories. The /var/empty directory is used by openntpd.
+    # Create directories. The /var/empty directory is used by openntpd.
     mkdir -p "${CONFIG_DIR}" && \
     mkdir -p "${RULES_DIRECTORY}" && \
     mkdir -p /var/empty && \
-
-# Clean up.
+    # Clean up.
     apk del python2-dev && \
     apk del musl-dev && \
     apk del gcc && \
