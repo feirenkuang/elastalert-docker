@@ -15,7 +15,7 @@
 # Elastalert Docker image running on Alpine Linux.
 # Build image with: docker build -t ivankrizsan/elastalert:latest .
 
-FROM alpine:3.8
+FROM python:3.6-alpine
 
 LABEL maintainer="Francesco Ciocchetti <fciocchetti@mintel.com>" \
       version="0.2.0b2" \
@@ -26,7 +26,7 @@ ENV SET_CONTAINER_TIMEZONE False
 # Default container timezone as found under the directory /usr/share/zoneinfo/.
 ENV CONTAINER_TIMEZONE Etc/UTC
 # VERSION from which to download Elastalert.
-ENV ELASTALERT_VERSION "0.2.0b2"
+ENV ELASTALERT_VERSION "0.2.1"
 # URL from which to download Elastalert.
 ENV ELASTALERT_URL https://github.com/Yelp/elastalert/archive/v${ELASTALERT_VERSION}.zip
 # Directory holding configuration for Elastalert and Supervisor.
@@ -53,7 +53,7 @@ WORKDIR /opt
 # Install software required for Elastalert and NTP for time synchronization.
 RUN apk update && \
     apk --no-cache upgrade && \
-    apk --no-cache add ca-certificates openssl-dev openssl libffi-dev python2 python2-dev py2-pip py2-yaml gcc musl-dev tzdata openntpd wget libmagic && \
+    apk --no-cache add ca-certificates openssl-dev openssl libffi-dev python3 python3-dev py3-pip py3-yaml gcc musl-dev tzdata openntpd wget libmagic && \
 # Download and unpack Elastalert.
     wget -O elastalert.zip "${ELASTALERT_URL}" && \
     unzip elastalert.zip && \
@@ -63,16 +63,16 @@ RUN apk update && \
 WORKDIR "${ELASTALERT_HOME}"
 
 # Install Elastalert.
-RUN python setup.py install && \
-    pip install -e . && \
-    pip uninstall twilio --yes && \
-    pip install twilio==6.0.0 && \
+RUN python3 setup.py install && \
+    pip3 install -e . && \
+    pip3 uninstall twilio --yes && \
+    pip3 install twilio==6.0.0 && \
     # Create directories. The /var/empty directory is used by openntpd.
     mkdir -p "${CONFIG_DIR}" && \
     mkdir -p "${RULES_DIRECTORY}" && \
     mkdir -p /var/empty && \
     # Clean up.
-    apk del python2-dev && \
+    apk del python3-dev && \
     apk del musl-dev && \
     apk del gcc && \
     apk del openssl-dev && \
