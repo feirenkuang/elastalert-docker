@@ -18,7 +18,7 @@
 FROM python:3.6-alpine
 
 LABEL maintainer="Francesco Ciocchetti <fciocchetti@mintel.com>" \
-      version="0.2.0b2" \
+      version="0.2.1" \
       vcs-url="https://github.com/mintel/elastalert-docker"
 
 # Set this environment variable to True to set timezone on container start.
@@ -67,6 +67,9 @@ RUN python3 setup.py install && \
     pip3 install -e . && \
     pip3 uninstall twilio --yes && \
     pip3 install twilio==6.0.0 && \
+    # 0.2.1 need patching for rule testing to work
+    # see https://github.com/Yelp/elastalert/issues/2600
+    sed -i -e 's/get_yaml(args.file)/load_yaml(args.file)/' /opt/elastalert/elastalert/test_rule.py && \
     # Create directories. The /var/empty directory is used by openntpd.
     mkdir -p "${CONFIG_DIR}" && \
     mkdir -p "${RULES_DIRECTORY}" && \
